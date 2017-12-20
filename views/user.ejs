@@ -1,0 +1,173 @@
+<script src="/lib/socket.io.js"></script>
+<script src="/lib/jquery-3.2.1.js"></script>
+<script src="/lib/tether.min.js"></script>
+<script src="/lib/bootstrap.min.js"></script>
+<link rel="stylesheet" href="/lib/bootstrap.min.css">
+<style>
+    .img-thumbnail {
+        width:400px;
+        height:400px;
+    }
+    .trade {
+        width: 150px !important;
+        height: 150px !important;
+    }
+</style>
+<div>
+    <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <a class="navbar-brand" >Book Trading Club</a>
+      
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav my-2 mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+            <form class="form-inline my-1" id="auth">
+                <button class="btn btn-outline-danger mr-sm-2" type="button" id="logout">Log out</button>
+            </form>
+        </div>
+    </nav>
+</div>
+<div>
+    <h1>
+        Trade with you
+    </h1>
+    <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8 ">
+            <div class="row" id="noti">
+
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+    <h1>
+        Your trade
+    </h1>
+    <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8 ">
+            <div class="row" id="trade">
+
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+    <h1>
+        Book
+    </h1>
+    <div class="row">
+        <div class="col-lg-4"></div>
+        <div class="col-lg-4">
+            <form class="text-center">
+                <input class="form-control " placeholder="Name" id="name">
+                <input class="form-control my-2" placeholder="Book's cover url" id="url">
+                <button class="btn btn-lg btn-outline-success my-1" type="button" id="add"> Add</button>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+            <div class="row" id="book">
+                     
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+
+<script>
+    var socket = io("/");
+    var username = window.location.pathname.split("/").pop();
+    $("#logout").on("click", function(){
+        socket.emit("logout","logout");
+        window.location.href = "/";
+    })
+    $("#add").on("click", function(){
+        
+        var name = $("#name").val();
+        var cover = $("#url").val();
+        $("#name").val("");
+        $("#url").val("");
+        if(name && cover) {
+            socket.emit("add",{username: username, name: name, cover: cover});
+        }
+        else alert("Invalid name or url");
+    })
+    $("#book").on("click",function(){
+        var name = $(event.target).val();
+        var text = $(event.target).text();
+        if (name) {
+            if(text[1] == "R") socket.emit("remove",{username: username, name: name});
+            if(text[1] == "T") socket.emit("trade", {username: username, name: name});
+        } else return;
+    })
+    $("#trade").on("click", function(){
+        var name = $(event.target).val();
+        if(name) socket.emit("rmtrade",{username: username, name: name});
+        else return false;
+    })
+
+    $("#noti").on("click",function(){
+        var value = $(event.target).val();
+        if(value) {
+            var offer = value.split(",")[1];
+            var name = value.split(",")[0];
+            socket.emit("accept",{username: username, offer:offer, name: name});
+        }
+    })
+
+    socket.on("update",function(data){
+        $("#book").empty();
+        for( var i = 0; i < data.length; i++) {
+            var html = "<div align='center' style='margin-top: 5px;'>" + "<img src='" + 
+            data[i].cover + "' class='img-thumbnail'>" + "<h4>" + data[i].name + "</h4>" +
+            "<button class='btn btn-outline-primary mr-sm-2' type='button' value='" +data[i].name +
+            "'> Trade </button>" +
+            "<button class='btn btn-outline-danger' type='button' value='" + data[i].name +
+             "'> Remove </button>" + "</div>";
+            $("#book").append(html);
+        }
+    })
+    socket.on("trade", function(data){
+        $("#trade").empty();
+        if (Array.isArray(data)) {
+            trade()
+        } else if (username == data.username) {
+            data = data.trade;
+            trade();
+        }
+        function trade () {
+            for( var i = 0; i < data.length; i++) {
+                var html = "<div align='center'>" + "<img src='" + 
+            data[i].cover + "' class='img-thumbnail trade'>" + "<h5>" + data[i].name + "</h5>" +
+            "<button class='btn btn-outline-warning' type='button' value='" + data[i].name +
+             "'> Remove </button>" + "</div>";
+                $("#trade").append(html);
+            }
+        }
+        
+    })
+    socket.on("noti", function(data){
+        $("#noti").empty();
+        for( var i = 0; i< data.length; i++) {
+            if(data[i].username != username) {
+                for ( var x = 0; x< data[i].trade.length; x++) {
+                var html = "<div align='center'>" + "<img src='" + 
+                data[i].trade[x].cover + "' class='img-thumbnail trade'>" + "<h5>" + data[i].trade[x].name + "</h5>" +
+            "<button class='btn btn-outline-success' type='button' value='" + data[i].trade[x].name + "," + data[i].username +
+             "'> Accept Trade </button>" + "</div>";
+                $("#noti").append(html);
+            }
+            }
+        }
+    })
+</script>

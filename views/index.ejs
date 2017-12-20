@@ -1,0 +1,89 @@
+<script src="socket.io/socket.io.js"></script>
+<script src="/lib/jquery-3.2.1.js"></script>
+<script src="/lib/tether.min.js"></script>
+<script src="/lib/bootstrap.min.js"></script>
+<link rel="stylesheet" href="/lib/bootstrap.min.css">
+<style>
+    .img-thumbnail {
+        width: 300px;
+        height: 300px;
+    }
+</style>
+
+<div>
+    <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <a class="navbar-brand" >Book Trading Club</a>
+      
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav my-2 mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+            <form class="form-inline my-1" id="auth">
+                <input class="form-control mr-sm-2" type="username" placeholder="Username" id="username"> 
+                <input class="form-control mr-sm-2" type="password" placeholder="Password" id="password">
+                <button class="btn btn-outline-info mr-sm-2" type="button" id="login">Login</button>
+                <button class="btn btn-outline-success mr-sm-2" type="button" id="signup">Signup</button>
+            </form>
+        </div>
+    </nav>
+</div>
+<div>
+    <div class="text-center" style="margin-top: 100px; margin-bottom: 50px">
+        <h1> Here is all book that we have! </h1>
+    </div>
+    <div class="row">
+        <div class="col-lg-2">
+        </div>
+        <div class="col-lg-8">
+            <div class="row" id="book">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var socket = io("/");
+    $("#signup").on("click", function(){
+        var username = $("#username").val();
+        var password = $("#password").val();
+        if(username || password) {
+            socket.emit("signup", {username: username, password: password});
+        } else {
+            alert("Invalid usernam or password");
+        }
+    })
+    $("#login").on("click", function(){
+        var username = $("#username").val();
+        var password = $("#password").val();
+        if(username || password) {
+            socket.emit("login", {username: username, password: password});
+        } else {
+            alert("Invalid usernam or password");
+        }
+    })
+    socket.on("signup",function(data){
+        alert(data);
+    })
+    socket.on("login",function(data){
+        if (data == "Invalid username or password") alert(data);
+        else window.location.href = data;
+    })
+    socket.on("allBook",function(data){
+        $("#book").empty();
+        for(var i = 0; i< data.length; i++) {
+            for( var i = 0; i < data.length; i++) {
+            var html = "<div align='center'>" + "<img src='" + 
+            data[i].cover + "' class='img-thumbnail'>" + "<h5>" + data[i].name + "</h5>" +
+             "</div>";
+            $("#book").append(html);
+        }
+        }
+    })
+</script>
