@@ -255,7 +255,7 @@ app.get("/",function(req,res){
                     var newUser = new user ({
                         username: data.username,
                         password: data.password,
-                        info: result.info,
+                        info: {},
                         book: [],
                         trade: []
                     })
