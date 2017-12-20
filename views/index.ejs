@@ -50,13 +50,14 @@
 
 <script>
     var socket = io("/");
-    $("#signup").on("click", function(){
+    $("#signup").on("click", function(e){
+        e.preventDefault();
         var username = $("#username").val();
         var password = $("#password").val();
         if(username || password) {
             socket.emit("signup", {username: username, password: password});
         } else {
-            alert("Invalid usernam or password");
+            alert("Invalid username or password");
         }
     })
     $("#login").on("click", function(e){
