@@ -193,7 +193,7 @@ io.on("connection", function(socket){
                     newUser = new user ({
                         username: Result.username,
                         password: Result.password,
-                        info: result.info,
+                        info: Result.info,
                         book: Result.book,
                         trade: Result.trade,
                     })
