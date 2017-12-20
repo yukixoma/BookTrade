@@ -24,41 +24,8 @@ app.set("views","./views");
 app.set("view engine","ejs");
 
 
-
-
+require('events').EventEmitter.defaultMaxListeners = 100;
 io.on("connection", function(socket){
-    process.setMaxListeners(0);
-    socket.on("signup", function(data){
-        user.findOne({username: data.username},function(err, result){
-            if(err) throw err;
-            if(result) socket.emit("signup","Username already used");
-            else {
-                var newUser = new user ({
-                    username: data.username,
-                    password: data.password,
-                    book: [],
-                    trade: []
-                })
-                newUser.save(function(err){
-                    if(err) throw err;
-                    socket.emit("signup","Welcome " + data.username);
-                })
-            }
-        })
-    })
-    socket.on("login", function(data){
-        user.findOne({username: data.username, password: data.password}, function(err,result){
-            if(err) throw err;
-            if(result) {
-                auth = true;
-                socket.emit("login","/user/" + data.username);
-            }
-            else socket.emit("login","Invalid username or password");
-        })
-    })
-    socket.on("logout", function(data){
-        auth = false;
-    })
     socket.on("add",function(data){
         user.findOne({username: data.username},function(err,result){
             if(err) throw err;
@@ -69,6 +36,7 @@ io.on("connection", function(socket){
                     newUser = new user({
                         username: result.username,
                         password: result.password,
+                        info: result.info,
                         book: result.book,
                         trade: result.trade,
                     })
@@ -94,6 +62,7 @@ io.on("connection", function(socket){
                     newUser = new user ({
                         username: result.username,
                         password: result.password,
+                        info: result.info,
                         book: result.book,
                         trade: result.trade,
                     })
@@ -121,6 +90,7 @@ io.on("connection", function(socket){
                     newUser = new user ({
                         username: result.username,
                         password: result.password,
+                        info: result.info,
                         book: result.book,
                         trade: result.trade,
                     })
@@ -160,6 +130,7 @@ io.on("connection", function(socket){
                     newUser = new user ({
                         username: result.username,
                         password: result.password,
+                        info: result.info,
                         book: result.book,
                         trade: result.trade,
                     })
@@ -201,6 +172,7 @@ io.on("connection", function(socket){
                 newUser = new user ({
                     username: result.username,
                     password: result.password,
+                    info: result.info,
                     book: result.book,
                     trade: result.trade,
                 })
@@ -216,12 +188,12 @@ io.on("connection", function(socket){
             user.findOne({username: data.username},function(err,Result){
                 if(err) throw err;
                 Result.book.push(temp[0]);
-                console.log(temp);
                 user.findByIdAndRemove(Result._id,function(err){
                     if(err) throw err;
                     newUser = new user ({
                         username: Result.username,
                         password: Result.password,
+                        info: result.info,
                         book: Result.book,
                         trade: Result.trade,
                     })
@@ -259,11 +231,11 @@ io.on("connection", function(socket){
 })
 
 app.get("/",function(req,res){
+    auth = false;
     res.render("index");
     io.on("connection",function(socket){
         user.find({},function(err,data){
             if(err) throw err;
-            console.log(data);
             var allBook = [];
             for( var i = 0; i < data.length; i++){
                 data[i].book.forEach(function(e) {
@@ -275,37 +247,115 @@ app.get("/",function(req,res){
             }
             socket.emit("allBook",allBook);
         })
+        socket.on("signup", function(data){
+            user.findOne({username: data.username},function(err, result){
+                if(err) throw err;
+                if(result) socket.emit("signup","Username already used");
+                else {
+                    var newUser = new user ({
+                        username: data.username,
+                        password: data.password,
+                        info: result.info,
+                        book: [],
+                        trade: []
+                    })
+                    newUser.save(function(err){
+                        if(err) throw err;
+                        socket.emit("signup","Welcome " + data.username);
+                    })
+                }
+            })
+        })
+        socket.on("login", function(data){
+            user.findOne({username: data.username, password: data.password}, function(err,result){
+                if(err) throw err;
+                if(result) {
+                    auth = true;
+                    socket.emit("login","/user/" + data.username);
+                }
+                else socket.emit("login","Invalid username or password");
+            })
+        })
+        socket.on("logout", function(data){
+            auth = false;
+        })
     })
     
 })
 app.get("/user/:username",function(req,res){
     var username = req.params.username;
-
-    if(auth) res.render("user");
-    else res.redirect("/");
-    user.findOne({username:username},function(err,data){
-        if(err) throw err;
-        if(data) {
-            console.log(data);
-            io.on("connection",function(socket){
-                socket.emit("update",data.book);
-                socket.emit("trade", data.trade);
-            })
-        }
-    })
-    user.find({username: { $ne: username}}, function(err,data){
-        if(err) throw err;
-        if(data.length>0) {
-            var noti = [];
-            for(var i = 0; i < data.length; i++) {
-                if(data[i].trade.length>0) {
-                    noti.push({username: data[i].username, trade: data[i].trade})
-                }
+    if(auth) {
+        auth = false;
+        res.render("user");
+        user.findOne({username:username},function(err,data){
+            if(err) throw err;
+            if(data) {
+                io.on("connection",function(socket){
+                    socket.emit("update",data.book);
+                    socket.emit("trade", data.trade);
+                })
             }
-            io.on("connection", function(socket){
-                socket.emit("noti",noti);
+        })
+        user.find({username: { $ne: username}}, function(err,data){
+            if(err) throw err;
+            if(data.length>0) {
+                var noti = [];
+                for(var i = 0; i < data.length; i++) {
+                    if(data[i].trade.length>0) {
+                        noti.push({username: data[i].username, trade: data[i].trade})
+                    }
+                }
+                io.on("connection", function(socket){
+                    socket.emit("noti",noti);
+                })
+                
+            }
+        })
+    }
+    else res.redirect("/");
+    
+})
+
+app.get("/update",function(req,res){
+    var username ="";
+    res.render("update");
+
+    io.on("connection",function(socket){
+       socket.on("infoLogin",function(data){
+            user.findOne({username: data.username, password: data.password},function(err,result){
+                if(err) throw err;
+                if(result) {
+                    username = data.username;
+                    socket.emit("infoLogin", result.info);
+                }
+                else {
+                    username = "";
+                    socket.emit("infoLogin","fail");
+                }
             })
-            
-        }
-    })
+       })
+       socket.on("submit",function(data){
+           user.findOne({username: username},function(err,result){
+               if(err) throw err;
+               if(result) {
+                   result.info = data;
+                   user.findByIdAndRemove(result._id,function(err){
+                       if(err) throw err;
+                       newUser = new user ({
+                            username: result.username,
+                            password: result.password,
+                            info: result.info,
+                            book: result.book,
+                            trade: result.trade,
+                       })
+                       newUser.save(function(err){
+                           if(err) throw err;
+                           console.log("info updated");
+                           socket.emit("submit","success");
+                       })
+                   })
+                } else socket.emit("submit","fail");
+           })
+       })
+   })
 })

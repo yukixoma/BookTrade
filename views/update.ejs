@@ -1,0 +1,91 @@
+<script src="/lib/socket.io.js"></script>
+<script src="/lib/jquery-3.2.1.js"></script>
+<script src="/lib/tether.min.js"></script>
+<script src="/lib/bootstrap.min.js"></script>
+<link rel="stylesheet" href="/lib/bootstrap.min.css">
+<style>
+    .img-thumbnail {
+        width: 300px;
+        height: 300px;
+    }
+</style>
+
+<div>
+    <nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <a class="navbar-brand" >Book Trading Club</a>
+      
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav my-2 mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                </li>
+            </ul>
+            
+        </div>
+    </nav>
+</div>
+<div>
+    <div class="text-center" style="margin-top: 100px; margin-bottom: 50px" >
+        <h1 id="noti"> Re-enter username and password </h1>
+    </div>
+    <div class="row">
+        <div class="col-lg-4">
+        </div>
+        <div class="col-lg-4">
+            <form class="text-center" id="auth">
+                <input class="form-control " placeholder="Username" id="username">
+                <input class="form-control my-2" placeholder="Password" type="password" id="password">
+                <button class="btn btn-outline-success my-1" type="button" id="login"> Login</button>
+            </form>
+            <form class="text-center" style="display:none" id="info">
+                Fullname 
+                <input class="form-control my-2" id="fullname">
+                City    
+                <input class="form-control my-2" id="city">
+                State
+                <input class="form-control my-2" id="state">
+                <button class="btn btn-outline-success my-1" type="button" id="submit"> Submit </button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    var socket = io("/");
+    $("#login").on("click",function(){
+        var username = $("#username").val();
+        var password = $("#password").val();
+        if (username && password) {
+            socket.emit("infoLogin", {username: username, password:password});
+        }
+    })
+    $("#submit").on("click",function(){
+        var fullname = $("#fullname").val();
+        var city = $("#city").val();
+        var state = $("#state").val();
+        if(fullname && city && state) {
+            socket.emit("submit",{fullname: fullname, city: city, state: state});
+        }
+    })
+    socket.on("infoLogin",function(data){
+        if(data != "fail") {
+            $("#auth").css("display","none");
+            $("#noti").text("Change your info").css("color","blue");
+            if (data) {
+                $("#fullname").attr("placeholder",data.fullname);
+                $("#city").attr("placeholder",data.city);
+                $("#state").attr("placeholder",data.state);
+            }
+            $("#info").css("display","");
+        } else {
+            $("#noti").text("Invalid username or password").css("color","red");
+        }
+    })
+    socket.on("submit",function(data){
+        if(data == "success") $("#noti").text("Info updated").css("color","green");
+        else $("#noti").text("Unknown error");
+    })
+    
+</script>
