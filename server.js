@@ -33,7 +33,7 @@ io.on("connection", function(socket){
                 result.book.push({name: data.name, cover: data.cover});
                 user.findByIdAndRemove(result._id,function(err){
                     if(err) throw err;
-                    newUser = new user({
+                    var newUser = new user({
                         username: result.username,
                         password: result.password,
                         info: result.info,
@@ -60,7 +60,7 @@ io.on("connection", function(socket){
                 user.findByIdAndRemove(result._id,function(err){
                     if(err) throw err;
                     console.log("book deleted");
-                    newUser = new user ({
+                    var newUser = new user ({
                         username: result.username,
                         password: result.password,
                         info: result.info,
@@ -89,7 +89,7 @@ io.on("connection", function(socket){
                 user.findByIdAndRemove(result._id,function(err){
                     if(err) throw err;
                     console.log("book deleted");
-                    newUser = new user ({
+                    var newUser = new user ({
                         username: result.username,
                         password: result.password,
                         info: result.info,
@@ -130,7 +130,7 @@ io.on("connection", function(socket){
                 }
                 user.findByIdAndRemove(result._id,function(err){
                     if(err) throw err;
-                    newUser = new user ({
+                    var newUser = new user ({
                         username: result.username,
                         password: result.password,
                         info: result.info,
@@ -173,7 +173,7 @@ io.on("connection", function(socket){
             }
             user.findByIdAndRemove(result._id,function(err){
                 if(err) throw err;
-                newUser = new user ({
+                var newUser = new user ({
                     username: result.username,
                     password: result.password,
                     info: result.info,
@@ -194,7 +194,7 @@ io.on("connection", function(socket){
                 Result.book.push(temp[0]);
                 user.findByIdAndRemove(Result._id,function(err){
                     if(err) throw err;
-                    newUser = new user ({
+                    var newUser = new user ({
                         username: Result.username,
                         password: Result.password,
                         info: Result.info,
@@ -352,7 +352,7 @@ app.get("/update",function(req,res){
                    result.info = data;
                    user.findByIdAndRemove(result._id,function(err){
                        if(err) throw err;
-                       newUser = new user ({
+                       var newUser = new user ({
                             username: result.username,
                             password: result.password,
                             info: result.info,
