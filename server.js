@@ -192,7 +192,7 @@ io.on("connection", function(socket){
             user.findOne({username: data.username},function(err,Result){
                 if(err) throw err;
                 Result.book.push(temp[0]);
-                user.findByIdAndRemove(Result._id,function(err){
+                user.find({username: username}).remove(function(err){
                     if(err) throw err;
                     var newUser = new user ({
                         username: Result.username,
