@@ -44,6 +44,7 @@ io.on("connection", function(socket){
                         if(err) throw err;
                         console.log("book updated");
                         socket.emit("update", newUser.book);
+                        return;
                     })
                 })
             }
@@ -69,6 +70,7 @@ io.on("connection", function(socket){
                     newUser.save(function(err){
                         if(err) throw err;
                         socket.emit("update",newUser.book);
+                        return;
                     })
                 })
             }
@@ -107,7 +109,8 @@ io.on("connection", function(socket){
                                         noti.push({username: data[i].username, trade: data[i].trade})
                                     }
                                 }
-                                socket.broadcast.emit("noti",noti);                        
+                                socket.broadcast.emit("noti",noti);
+                                return;                        
                             }
                         })
                     })
@@ -148,7 +151,8 @@ io.on("connection", function(socket){
                                         noti.push({username: data[i].username, trade: data[i].trade})
                                     }
                                 }
-                                socket.broadcast.emit("noti",noti);                        
+                                socket.broadcast.emit("noti",noti); 
+                                return;                       
                             }
                         })
                     })
@@ -215,16 +219,19 @@ io.on("connection", function(socket){
                             noti.push({username: result[i].username, trade: result[i].trade})
                         }
                     }
-                    io.sockets.emit("noti",noti);                        
+                    io.sockets.emit("noti",noti);
+                    return;                        
                 }
             })
             user.findOne({username: data.username},function(err,result) {
                 if(err) throw err;
                 socket.emit("update",result.book);
+                return;
             })
             user.findOne({username: data.offer},function(err,result){
                 if(err)  throw err;
                 socket.broadcast.emit("trade",{username: data.offer, trade: result.trade})
+                return;
             })
         }
     })
@@ -272,8 +279,12 @@ app.get("/",function(req,res){
                 if(result) {
                     auth = true;
                     socket.emit("login","/user/" + data.username);
+                    return;
                 }
-                else socket.emit("login","Invalid username or password");
+                else {
+                    socket.emit("login","Invalid username or password");
+                    return;
+                }
             })
         })
         socket.on("logout", function(data){

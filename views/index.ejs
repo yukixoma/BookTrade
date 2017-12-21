@@ -1,4 +1,4 @@
-<script src="/lib/socket.io.js"></script>
+<script src="socket.io/socket.io.js"></script>
 <script src="/lib/jquery-3.2.1.js"></script>
 <script src="/lib/tether.min.js"></script>
 <script src="/lib/bootstrap.min.js"></script>
@@ -58,13 +58,15 @@
             socket.emit("signup", {username: username, password: password});
         } else {
             alert("Invalid username or password");
+            return;
         }
     })
     $("#login").on("click", function(e){
+        e.stopImmediatePropagation();
         e.preventDefault();
         var username = $("#username").val();
         var password = $("#password").val();
-        if(username || password) {
+        if(username && password) {
             socket.emit("login", {username: username, password: password});
         } else {
             alert("Invalid usernam or password");
@@ -74,7 +76,9 @@
         alert(data);
     })
     socket.on("login",function(data){
-        if (data == "Invalid username or password") alert(data);
+        if (data == "Invalid username or password") {
+            alert(data);
+        }
         else window.location.href = data;
     })
     socket.on("allBook",function(data){

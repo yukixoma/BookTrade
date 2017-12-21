@@ -1,4 +1,4 @@
-<script src="/lib/socket.io.js"></script>
+<script src="../socket.io/socket.io.js"></script>
 <script src="/lib/jquery-3.2.1.js"></script>
 <script src="/lib/tether.min.js"></script>
 <script src="/lib/bootstrap.min.js"></script>
@@ -93,8 +93,9 @@
         socket.emit("logout","logout");
         window.location.href = "/";
     })
-    $("#add").on("click", function(){
-        
+    $("#add").on("click", function(e){
+        e.stopImmediatePropagation();
+        e.preventDefault();
         var name = $("#name").val();
         var cover = $("#url").val();
         $("#name").val("");
@@ -102,7 +103,10 @@
         if(name && cover) {
             socket.emit("add",{username: username, name: name, cover: cover});
         }
-        else alert("Invalid name or url");
+        else {
+            alert("Invalid name or url");
+            return;
+        }
     })
     $("#book").on("click",function(){
         var name = $(event.target).val();
